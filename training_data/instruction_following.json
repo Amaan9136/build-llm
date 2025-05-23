@@ -1,0 +1,11 @@
+[
+  {
+    "text": "Instruction: Write a function to reverse a string.\nInput: hello world\nOutput: dlrow olleh\n\nHere's a Python function to reverse a string:\n```python\ndef reverse_string(s):\n    return s[::-1]\n```"
+  },
+  {
+    "text": "Instruction: Explain the concept in simple terms.\nInput: Photosynthesis\nOutput: Photosynthesis is how plants make food using sunlight, water, and air. They take in carbon dioxide from the air and water from their roots, then use sunlight to turn these into sugar for energy and release oxygen that we breathe."
+  },
+  {
+    "text": "Instruction: Summarize the following text.\nInput: Climate change refers to long-term shifts in global temperatures and weather patterns. While climate change is natural, scientific evidence shows that human activities have been the main driver since the 1800s.\nOutput: Climate change involves long-term changes in global weather patterns, primarily caused by human activities since the 1800s."
+  }
+]
