@@ -18,8 +18,7 @@ import logging
 from tqdm import tqdm
 import tiktoken
 
-# Import your LLM classes (assuming they're in the same file or imported)
-# [Include all the LLM classes from your original code here]
+from text_dataset import TextDataset, LLMTrainer, CharTokenizer
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'
@@ -78,7 +77,6 @@ def train_model_async(data_path, config, training_params):
         if trainer.tokenizer is None:
             trainer.tokenizer = trainer._create_char_tokenizer(data_path)
         
-        from torch.utils.data import Dataset, DataLoader
         dataset = TextDataset(data_path, trainer.tokenizer, trainer.config.n_ctx)
         dataloader = DataLoader(dataset, batch_size=training_params['batch_size'], shuffle=True)
         
@@ -309,7 +307,7 @@ def get_training_status():
 def generate_text():
     data = request.json
     model_name = data.get('model_name')
-    prompt = data.get('prompt', '')
+    prompt = data.get('prompt', '') 
     max_length = data.get('max_length', 100)
     temperature = data.get('temperature', 0.8)
     

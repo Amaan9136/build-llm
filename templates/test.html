@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Models - LLM Training Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">LLM Training Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/train">Train</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/test">Test</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/models">Models</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Test Models</h1>
+        
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Generation Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="generate-form">
+                            <div class="mb-3">
+                                <label for="model-select" class="form-label">Select Model</label>
+                                <select class="form-select" id="model-select" required>
+                                    <option value="" selected disabled>Choose a model...</option>
+                                    {% for model in models %}
+                                    <option value="{{ model.name }}">{{ model.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div id="model-info" class="d-none mb-3">
+                                <div class="alert alert-info py-2">
+                                    <div id="model-details"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="prompt" class="form-label">Prompt</label>
+                                <textarea class="form-control" id="prompt" rows="4" required placeholder="Enter a prompt to generate text..."></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="max-length" class="form-label">Max Length</label>
+                                        <input type="number" class="form-control" id="max-length" value="100" min="10" max="1000">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="temperature" class="form-label">Temperature</label>
+                                        <input type="range" class="form-range" id="temperature" min="0.1" max="1.5" step="0.1" value="0.8">
+                                        <div class="d-flex justify-content-between">
+                                            <small>More Focused (0.1)</small>
+                                            <small id="temp-value">0.8</small>
+                                            <small>More Random (1.5)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100" id="generate-btn">Generate Text</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Generated Output</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="copy-output" disabled>Copy</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-indicator" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Generating text...</p>
+                        </div>
+                        
+                        <div id="output-container">
+                            <div id="output-display" class="p-3 bg-light rounded" style="min-height: 400px;">
+                                <div class="text-center text-muted">
+                                    <p>Select a model and enter a prompt to generate text</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Generation History</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush" id="history-list">
+                                <li class="list-group-item text-center text-muted">No generation history yet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-4 bg-light">
+        <div class="container text-center">
+            <p>LLM Training Platform - A Flask-based interface for language model training</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/test.js') }}"></script>
+</body>
+</html>

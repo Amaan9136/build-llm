@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Model - LLM Training Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">LLM Training Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/train">Train</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/test">Test</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/models">Models</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Train New Model</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">1. Upload Training Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="upload-form" class="mb-3">
+                            <div class="mb-3">
+                                <label for="data-file" class="form-label">Training Data File (.txt or .json)</label>
+                                <input type="file" class="form-control" id="data-file" accept=".txt,.json">
+                                <div class="form-text">Supported formats: .txt (plain text) or .json (structured data)</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </form>
+                        
+                        <div id="file-info" class="d-none">
+                            <div class="alert alert-success">
+                                <h6>File Uploaded Successfully</h6>
+                                <div id="file-details"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">2. Configure Model</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="training-form">
+                            <div class="mb-3">
+                                <label for="model-name" class="form-label">Model Name</label>
+                                <input type="text" class="form-control" id="model-name" required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="n-layer" class="form-label">Number of Layers</label>
+                                        <input type="number" class="form-control" id="n-layer" value="12" min="1" max="24">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="n-head" class="form-label">Number of Attention Heads</label>
+                                        <input type="number" class="form-control" id="n-head" value="12" min="1" max="24">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="n-embd" class="form-label">Embedding Dimension</label>
+                                        <input type="number" class="form-control" id="n-embd" value="768" min="128" step="128">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="max-length" class="form-label">Max Sequence Length</label>
+                                        <input type="number" class="form-control" id="max-length" value="1024" min="128" max="2048">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="vocab-size" class="form-label">Vocabulary Size</label>
+                                <input type="number" class="form-control" id="vocab-size" value="50257" min="1000">
+                            </div>
+                            
+                            <hr>
+                            <h6 class="mb-3">Training Parameters</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="epochs" class="form-label">Epochs</label>
+                                        <input type="number" class="form-control" id="epochs" value="3" min="1" max="100">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="batch-size" class="form-label">Batch Size</label>
+                                        <input type="number" class="form-control" id="batch-size" value="8" min="1" max="64">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="learning-rate" class="form-label">Learning Rate</label>
+                                        <input type="number" class="form-control" id="learning-rate" value="0.0001" min="0.00001" max="0.01" step="0.00001">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="weight-decay" class="form-label">Weight Decay</label>
+                                        <input type="number" class="form-control" id="weight-decay" value="0.01" min="0" max="0.1" step="0.001">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="max-grad-norm" class="form-label">Max Gradient Norm</label>
+                                        <input type="number" class="form-control" id="max-grad-norm" value="1.0" min="0.1" max="10" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success w-100" id="start-training-btn" disabled>Start Training</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="training-status" class="card d-none">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Training Progress</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Epoch: <span id="current-epoch">0</span>/<span id="total-epochs">0</span></span>
+                    <span>Loss: <span id="current-loss">0.0</span> (Avg: <span id="avg-loss">0.0</span>)</span>
+                </div>
+                
+                <div class="progress mb-3">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button id="stop-training-btn" class="btn btn-danger">Stop Training</button>
+                    <button id="view-model-btn" class="btn btn-primary d-none">View Model</button>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Training Log</h6>
+                    <div id="training-log" class="bg-dark text-light p-3" style="height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.85rem;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-4 bg-light">
+        <div class="container text-center">
+            <p>LLM Training Platform - A Flask-based interface for language model training</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/train.js') }}"></script>
+</body>
+</html>
