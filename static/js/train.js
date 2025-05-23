@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const trainingLogEl = document.getElementById('training-log');
     
     // Global variables
-    let uploadedFileName = null;
+    let uploadedFileNames = []; // Changed to array to hold multiple file names
+    let filepaths = []; // Added to store file paths
     let statusInterval = null;
     let isTraining = false;
     
@@ -53,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Upload files
-        fetch('/upload_data', {  // Changed from '/upload_multiple_data' to '/upload_data'
+        fetch('/upload_data', {
             method: 'POST',
             body: formData
         })
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 uploadedFileNames = data.filenames;
+                filepaths = data.filepaths; // Store filepaths
                 
                 // Display file info
                 let infoHtml = `<p><strong>Files:</strong> ${data.filenames.length} files uploaded</p>`;
@@ -125,8 +127,9 @@ document.addEventListener('DOMContentLoaded', function() {
     trainingForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        if (!uploadedFileName) {
-            alert('Please upload a training data file first');
+        // Check if files have been uploaded - fixed this check
+        if (!uploadedFileNames || uploadedFileNames.length === 0) {
+            alert('Please upload at least one training data file first');
             return;
         }
         
@@ -137,26 +140,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const nEmbd = parseInt(document.getElementById('n-embd').value);
         const maxLength = parseInt(document.getElementById('max-length').value);
         const vocabSize = parseInt(document.getElementById('vocab-size').value);
+        const useGpu = document.getElementById('use-gpu').checked;
+        const fp16 = document.getElementById('fp16').checked;
+        const mixedPrecision = document.getElementById('mixed-precision').checked;
         const epochs = parseInt(document.getElementById('epochs').value);
         const batchSize = parseInt(document.getElementById('batch-size').value);
         const learningRate = parseFloat(document.getElementById('learning-rate').value);
         const weightDecay = parseFloat(document.getElementById('weight-decay').value);
         const maxGradNorm = parseFloat(document.getElementById('max-grad-norm').value);
+        const earlyStoppingPatience = parseInt(document.getElementById('early-stopping').value);
+        const useLrScheduler = document.getElementById('use-lr-scheduler').checked;
         
         // Prepare data for the request
         const trainingData = {
-            data_file: uploadedFileName,
+            data_files: uploadedFileNames, // Send all filenames as an array
             model_name: modelName,
             n_layer: nLayer,
             n_head: nHead,
             n_embd: nEmbd,
             max_length: maxLength,
             vocab_size: vocabSize,
+            use_gpu: useGpu,
+            fp16: fp16,
+            mixed_precision: mixedPrecision,
             epochs: epochs,
             batch_size: batchSize,
             learning_rate: learningRate,
             weight_decay: weightDecay,
-            max_grad_norm: maxGradNorm
+            max_grad_norm: maxGradNorm,
+            early_stopping_patience: earlyStoppingPatience,
+            use_lr_scheduler: useLrScheduler
         };
         
         // Start training

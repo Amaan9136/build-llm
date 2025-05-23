@@ -292,11 +292,34 @@ class LLMTrainer:
         tokenizer = CharTokenizer()
         
         # Load data for tokenizer
+        # Handle case when file_path is a list (multiple files)
+        if isinstance(file_path, list):
+            all_text = ""
+            for path in file_path:
+                all_text += self._load_text_from_file(path) + "\n\n"
+            text = all_text
+        else:
+            # Single file case
+            text = self._load_text_from_file(file_path)
+        
+        # Fit tokenizer
+        tokenizer.fit(text)
+        
+        # Update vocab size in config
+        self.config.vocab_size = tokenizer.vocab_size
+        
+        # Recreate model with new vocab size
+        self.model = self._create_model()
+        
+        return tokenizer
+
+    def _load_text_from_file(self, file_path):
+        """Helper to load text from a single file"""
         extension = os.path.splitext(file_path)[1].lower()
         
         if extension == '.txt':
             with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
+                return f.read()
         
         elif extension == '.json':
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -309,24 +332,17 @@ class LLMTrainer:
                         text += item['text'] + "\n\n"
                     elif isinstance(item, str):
                         text += item + "\n\n"
+                return text
             
             elif isinstance(data, dict) and 'text' in data:
-                text = data['text']
+                return data['text']
             
             else:
-                text = json.dumps(data)
+                return json.dumps(data)
         
-        # Fit tokenizer
-        tokenizer.fit(text)
-        
-        # Update vocab size in config
-        self.config.vocab_size = tokenizer.vocab_size
-        
-        # Recreate model with new vocab size
-        self.model = self._create_model()
-        
-        return tokenizer
-    
+        else:
+            raise ValueError(f"Unsupported file format: {extension}")
+
     def save_model(self, save_dir):
         """Save model and tokenizer to directory"""
         os.makedirs(save_dir, exist_ok=True)

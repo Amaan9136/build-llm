@@ -71,8 +71,16 @@ def train_model_async(data_path, config, training_params):
         os.makedirs(output_dir, exist_ok=True)
         
         training_logger.log("Loading training data...")
-        if trainer.tokenizer is None:
-            trainer.tokenizer = trainer._create_char_tokenizer(data_path)
+        
+        # Fix: If multiple files provided, create tokenizer using only the first file
+        if isinstance(data_path, list) and len(data_path) > 0:
+            # Create tokenizer from the first file
+            if trainer.tokenizer is None:
+                trainer.tokenizer = trainer._create_char_tokenizer(data_path[0])
+        else:
+            # Single file case
+            if trainer.tokenizer is None:
+                trainer.tokenizer = trainer._create_char_tokenizer(data_path)
         
         # If multiple files provided, process them all
         if isinstance(data_path, list):
@@ -505,17 +513,21 @@ def start_training():
     }
     
     # Process single file or multiple files
-    if isinstance(data['data_files'], list):
+    if isinstance(data['data_files'], list) and len(data['data_files']) > 0:
         data_paths = [os.path.join(app.config['UPLOAD_FOLDER'], file) for file in data['data_files']]
         # Verify all files exist
         for path in data_paths:
             if not os.path.exists(path):
                 return jsonify({'success': False, 'error': f'Training data file not found: {os.path.basename(path)}'})
     else:
-        data_path = os.path.join(app.config['UPLOAD_FOLDER'], data['data_files'])
-        if not os.path.exists(data_path):
-            return jsonify({'success': False, 'error': 'Training data file not found'})
-        data_paths = data_path
+        # Handle case where a single string might be passed instead of a list
+        if isinstance(data['data_files'], str):
+            data_path = os.path.join(app.config['UPLOAD_FOLDER'], data['data_files'])
+            if not os.path.exists(data_path):
+                return jsonify({'success': False, 'error': 'Training data file not found'})
+            data_paths = data_path
+        else:
+            return jsonify({'success': False, 'error': 'No training data files provided'})
     
     # Start training in background thread
     training_thread = threading.Thread(
@@ -526,7 +538,6 @@ def start_training():
     training_thread.start()
     
     return jsonify({'success': True, 'message': 'Training started'})
-
 @app.route('/stop_training', methods=['POST'])
 def stop_training():
     global training_status
