@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Upload files
-        fetch('/upload_multiple_data', {
+        fetch('/upload_data', {  // Changed from '/upload_multiple_data' to '/upload_data'
             method: 'POST',
             body: formData
         })

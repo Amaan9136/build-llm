@@ -116,7 +116,9 @@ class LLMTrainer:
     Trainer class for language models.
     Handles model creation, training, and inference.
     """
-    def __init__(self, n_layer=12, n_head=12, n_embd=768, n_ctx=1024, vocab_size=50257):
+    # Add to LLMTrainer.__init__ in python_classes/text_dataset.py
+    def __init__(self, n_layer=12, n_head=12, n_embd=768, n_ctx=1024, vocab_size=50257, 
+                use_gpu=True, fp16=False, mixed_precision=False, device_id=0):
         """
         Initialize the trainer with model configuration.
         
@@ -126,6 +128,10 @@ class LLMTrainer:
             n_embd (int): Embedding dimension
             n_ctx (int): Context length
             vocab_size (int): Vocabulary size
+            use_gpu (bool): Whether to use GPU for training
+            fp16 (bool): Whether to use FP16 precision
+            mixed_precision (bool): Whether to use mixed precision training
+            device_id (int): GPU device ID to use
         """
         self.config = type('Config', (), {
             'n_layer': n_layer,
@@ -135,10 +141,15 @@ class LLMTrainer:
             'vocab_size': vocab_size
         })
         
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(f'cuda:{device_id}' if torch.cuda.is_available() and use_gpu else 'cpu')
         self.model = self._create_model()
         self.tokenizer = None
-    
+        
+        # Add support for mixed precision training
+        self.scaler = None
+        if mixed_precision and self.device.type == 'cuda':
+            self.scaler = torch.cuda.amp.GradScaler()
+
     def _create_model(self):
         """Create a GPT-style language model"""
         # For simplicity, we'll use a basic transformer model
