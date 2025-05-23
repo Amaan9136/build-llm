@@ -27,15 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const file = dataFileInput.files[0];
-        if (!file) {
-            alert('Please select a file first');
+        const files = dataFileInput.files;
+        if (!files || files.length === 0) {
+            alert('Please select at least one file');
             return;
         }
-        
-        // Create FormData object
-        const formData = new FormData();
-        formData.append('file', file);
         
         // Show loading indicator
         fileInfo.innerHTML = `
@@ -44,48 +40,61 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="spinner-border spinner-border-sm me-2" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    Uploading file...
+                    Uploading ${files.length} file(s)...
                 </div>
             </div>
         `;
         fileInfo.classList.remove('d-none');
         
-        // Upload file
-        fetch('/upload_data', {
+        // Create FormData for multiple files
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files[]', files[i]);
+        }
+        
+        // Upload files
+        fetch('/upload_multiple_data', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                uploadedFileName = data.filename;
+                uploadedFileNames = data.filenames;
                 
                 // Display file info
-                let infoHtml = `<p><strong>File:</strong> ${data.filename}</p>`;
+                let infoHtml = `<p><strong>Files:</strong> ${data.filenames.length} files uploaded</p>`;
                 
                 if (data.info) {
-                    if (data.info.type === 'text') {
+                    infoHtml += `
+                        <p><strong>Combined Size:</strong> ${data.info.total_size_mb.toFixed(2)} MB</p>
+                        <p><strong>Total Characters:</strong> ${data.info.total_characters.toLocaleString()}</p>
+                        <p><strong>Total Words:</strong> ${data.info.total_words.toLocaleString()}</p>
+                    `;
+                    
+                    // Display individual file info
+                    if (data.file_details && data.file_details.length > 0) {
+                        infoHtml += `<hr><h6>Individual File Details:</h6><ul>`;
+                        data.file_details.forEach(file => {
+                            infoHtml += `<li><strong>${file.filename}</strong>: ${file.size_mb.toFixed(2)} MB, ${file.characters.toLocaleString()} chars</li>`;
+                        });
+                        infoHtml += `</ul>`;
+                    }
+                    
+                    // Display duplicate warning if any
+                    if (data.info.duplicate_warning) {
                         infoHtml += `
-                            <p><strong>Size:</strong> ${data.info.size_mb} MB</p>
-                            <p><strong>Characters:</strong> ${data.info.characters.toLocaleString()}</p>
-                            <p><strong>Words:</strong> ${data.info.words.toLocaleString()}</p>
-                            <p><strong>Lines:</strong> ${data.info.lines.toLocaleString()}</p>
+                            <div class="alert alert-warning mt-2">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                ${data.info.duplicate_warning}
+                            </div>
                         `;
-                    } else if (data.info.type === 'json') {
-                        infoHtml += `
-                            <p><strong>Size:</strong> ${data.info.size_mb} MB</p>
-                            <p><strong>Records:</strong> ${data.info.records.toLocaleString()}</p>
-                            <p><strong>Total Characters:</strong> ${data.info.total_characters.toLocaleString()}</p>
-                            <p><strong>Total Words:</strong> ${data.info.total_words.toLocaleString()}</p>
-                        `;
-                    } else {
-                        infoHtml += `<p><strong>Size:</strong> ${data.info.size_mb} MB</p>`;
                     }
                 }
                 
                 fileInfo.innerHTML = `
                     <div class="alert alert-success">
-                        <h6>File Uploaded Successfully</h6>
+                        <h6>Files Uploaded Successfully</h6>
                         ${infoHtml}
                     </div>
                 `;

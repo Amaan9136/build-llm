@@ -45,16 +45,16 @@
                     <div class="card-body">
                         <form id="upload-form" class="mb-3">
                             <div class="mb-3">
-                                <label for="data-file" class="form-label">Training Data File (.txt or .json)</label>
-                                <input type="file" class="form-control" id="data-file" accept=".txt,.json">
-                                <div class="form-text">Supported formats: .txt (plain text) or .json (structured data)</div>
+                                <label for="data-file" class="form-label">Training Data Files (.txt or .json)</label>
+                                <input type="file" class="form-control" id="data-file" accept=".txt,.json" multiple>
+                                <div class="form-text">Select one or more files (multiple files will be combined for training)</div>
                             </div>
                             <button type="submit" class="btn btn-primary">Upload</button>
                         </form>
                         
                         <div id="file-info" class="d-none">
                             <div class="alert alert-success">
-                                <h6>File Uploaded Successfully</h6>
+                                <h6>Files Uploaded Successfully</h6>
                                 <div id="file-details"></div>
                             </div>
                         </div>
@@ -64,14 +64,18 @@
             
             <div class="col-md-6">
                 <div class="card mb-4">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">2. Configure Model</h5>
+                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modelParamsHelpModal">
+                            <i class="bi bi-question-circle"></i> Parameter Help
+                        </button>
                     </div>
                     <div class="card-body">
                         <form id="training-form">
                             <div class="mb-3">
                                 <label for="model-name" class="form-label">Model Name</label>
                                 <input type="text" class="form-control" id="model-name" required>
+                                <div class="form-text">A unique name for your model</div>
                             </div>
                             
                             <div class="row">
@@ -79,12 +83,14 @@
                                     <div class="mb-3">
                                         <label for="n-layer" class="form-label">Number of Layers</label>
                                         <input type="number" class="form-control" id="n-layer" value="12" min="1" max="24">
+                                        <div class="form-text">Transformer layers (more = better but slower)</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="n-head" class="form-label">Number of Attention Heads</label>
                                         <input type="number" class="form-control" id="n-head" value="12" min="1" max="24">
+                                        <div class="form-text">Attention heads per layer (usually same as layers)</div>
                                     </div>
                                 </div>
                             </div>
@@ -94,12 +100,14 @@
                                     <div class="mb-3">
                                         <label for="n-embd" class="form-label">Embedding Dimension</label>
                                         <input type="number" class="form-control" id="n-embd" value="768" min="128" step="128">
+                                        <div class="form-text">Model width (128-1024, multiple of 128)</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="max-length" class="form-label">Max Sequence Length</label>
                                         <input type="number" class="form-control" id="max-length" value="1024" min="128" max="2048">
+                                        <div class="form-text">Maximum context length for prediction</div>
                                     </div>
                                 </div>
                             </div>
@@ -107,6 +115,24 @@
                             <div class="mb-3">
                                 <label for="vocab-size" class="form-label">Vocabulary Size</label>
                                 <input type="number" class="form-control" id="vocab-size" value="50257" min="1000">
+                                <div class="form-text">Number of unique tokens (will be optimized automatically)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">GPU Acceleration Options</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="use-gpu" checked>
+                                    <label class="form-check-label" for="use-gpu">Use GPU for training (if available)</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="fp16" checked>
+                                    <label class="form-check-label" for="fp16">Use FP16 (half precision)</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="mixed-precision" checked>
+                                    <label class="form-check-label" for="mixed-precision">Mixed precision training</label>
+                                </div>
+                                <div class="form-text">These settings can speed up training on compatible GPUs</div>
                             </div>
                             
                             <hr>
@@ -117,35 +143,53 @@
                                     <div class="mb-3">
                                         <label for="epochs" class="form-label">Epochs</label>
                                         <input type="number" class="form-control" id="epochs" value="3" min="1" max="100">
+                                        <div class="form-text">Number of complete passes through the data</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="batch-size" class="form-label">Batch Size</label>
                                         <input type="number" class="form-control" id="batch-size" value="8" min="1" max="64">
+                                        <div class="form-text">Samples processed simultaneously</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="learning-rate" class="form-label">Learning Rate</label>
                                         <input type="number" class="form-control" id="learning-rate" value="0.0001" min="0.00001" max="0.01" step="0.00001">
+                                        <div class="form-text">Controls how quickly model learns</div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="weight-decay" class="form-label">Weight Decay</label>
                                         <input type="number" class="form-control" id="weight-decay" value="0.01" min="0" max="0.1" step="0.001">
+                                        <div class="form-text">Regularization to prevent overfitting</div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="max-grad-norm" class="form-label">Max Gradient Norm</label>
                                         <input type="number" class="form-control" id="max-grad-norm" value="1.0" min="0.1" max="10" step="0.1">
+                                        <div class="form-text">Gradient clipping to stabilize training</div>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="early-stopping" class="form-label">Early Stopping Patience</label>
+                                        <input type="number" class="form-control" id="early-stopping" value="0" min="0" max="10">
+                                        <div class="form-text">Stop if no improvement (0 = disabled)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="use-lr-scheduler">
+                                <label class="form-check-label" for="use-lr-scheduler">Use learning rate scheduler</label>
+                                <div class="form-text">Gradually reduces learning rate during training</div>
                             </div>
                             
                             <button type="submit" class="btn btn-success w-100" id="start-training-btn" disabled>Start Training</button>
